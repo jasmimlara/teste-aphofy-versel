@@ -1,0 +1,8 @@
+{
+  "name": "Copy of copia teste vercel",
+  "description": "Aprohfy - Seu app de gamificação e produtividade. Uma plataforma completa para rastreamento de hábitos, gestão de tarefas, cronômetro Pomodoro e finanças com design moderno em Glassmorphism.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
