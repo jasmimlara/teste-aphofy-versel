@@ -1,3 +1,4 @@
+
 import React, { useContext, useMemo, useState } from 'react';
 import { GlassCard } from '../components/GlassCard';
 import { 
@@ -23,6 +24,13 @@ import { AppContext } from '../App';
 import { LEVELS } from '../constants';
 import { Tab } from '../types';
 
+interface RadarStat {
+  subject: string;
+  value: number;
+  color: string;
+  tab: Tab;
+}
+
 export const HomeTab: React.FC = () => {
   const context = useContext(AppContext);
   const [timeFilter, setTimeFilter] = useState<'today' | 'month'>('today');
@@ -42,7 +50,7 @@ export const HomeTab: React.FC = () => {
     FINANCE: '#A78BFA'
   };
 
-  const stats = useMemo(() => {
+  const { radarData, totalScore } = useMemo(() => {
     const { habits, tasks, achievements, transactions, user } = context;
 
     const habitsScore = habits.length > 0 ? (habits.filter(h => h.lastChecked === todayStr).length / habits.length) * 20 : 0;
@@ -54,18 +62,16 @@ export const HomeTab: React.FC = () => {
 
     const average = (habitsScore + pomoScore + tasksScore + achievementsScore + financeScore) / 5;
 
-    return [
+    const data: RadarStat[] = [
       { subject: 'HÁBITOS', value: habitsScore, color: CAT_COLORS.HABITS, tab: Tab.HABITS },
       { subject: 'POMODORO', value: pomoScore, color: CAT_COLORS.POMODORO, tab: Tab.POMODORO },
       { subject: 'MISSÕES', value: tasksScore, color: CAT_COLORS.TASKS, tab: Tab.TASKS },
       { subject: 'CONQUISTAS', value: achievementsScore, color: CAT_COLORS.ACHIEVEMENTS, tab: Tab.ACHIEVEMENTS },
       { subject: 'FINANÇAS', value: financeScore, color: CAT_COLORS.FINANCE, tab: Tab.FINANCE },
-      { average }
     ];
-  }, [context, todayStr]);
 
-  const radarData = stats.slice(0, 5);
-  const totalScore = stats[5] as any;
+    return { radarData: data, totalScore: average };
+  }, [context, todayStr]);
 
   const currentLevelData = LEVELS.find(l => l.level === context.user.level) || LEVELS[0];
   const nextLevelData = LEVELS.find(l => l.level === context.user.level + 1);
@@ -83,7 +89,7 @@ export const HomeTab: React.FC = () => {
           </p>
         </div>
         <button onClick={() => {
-            navigator.clipboard.writeText(`Score de ${totalScore.average.toFixed(1)} no Aprohfy! 🔥`);
+            navigator.clipboard.writeText(`Score de ${totalScore.toFixed(1)} no Aprohfy! 🔥`);
             context.notify('info', 'Score copiado!');
         }} className="p-4 glass rounded-2xl text-[#999999] hover:text-white transition-all active:scale-90">
           <Share2 size={20} />
@@ -129,7 +135,7 @@ export const HomeTab: React.FC = () => {
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-20">
                <span className="text-[10px] font-black text-[#999999] uppercase tracking-[0.4em] mb-1">Score Total</span>
                <span className="text-6xl md:text-7xl font-black italic tracking-tighter text-white drop-shadow-2xl">
-                 {totalScore.average.toFixed(1)}
+                 {totalScore.toFixed(1)}
                </span>
             </div>
 
@@ -138,7 +144,7 @@ export const HomeTab: React.FC = () => {
                 <PolarGrid stroke="rgba(255,255,255,0.1)" strokeWidth={1} />
                 <PolarAngleAxis 
                   dataKey="subject" 
-                  tick={(props) => {
+                  tick={(props: any) => {
                     const { x, y, payload } = props;
                     const dataItem = radarData.find(d => d.subject === payload.value);
                     return (
@@ -157,7 +163,7 @@ export const HomeTab: React.FC = () => {
 
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6 w-full max-w-4xl mt-8 pt-8 border-t border-white/5">
             {radarData.map((stat, idx) => (
-              <button key={idx} onClick={() => context.setActiveTab(stat.tab as Tab)} className="flex flex-col items-center p-4 rounded-3xl hover:bg-white/5 transition-all group">
+              <button key={idx} onClick={() => context.setActiveTab(stat.tab)} className="flex flex-col items-center p-4 rounded-3xl hover:bg-white/5 transition-all group">
                 <div className="flex items-center gap-2 mb-2">
                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: stat.color }}></div>
                    <span className="text-[10px] font-black text-[#999999] uppercase tracking-widest group-hover:text-white">{stat.subject}</span>
